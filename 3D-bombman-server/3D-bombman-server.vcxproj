@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <ExecutablePath>C:\Users\Mads\Desktop\boost_1_55_0\libs;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>C:\Users\Mathias\Desktop\boost_1_55_0\stage\lib;C:\Users\Mads\Desktop\boost_1_55_0\stage\lib;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
