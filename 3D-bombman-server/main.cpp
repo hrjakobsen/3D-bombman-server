@@ -47,16 +47,18 @@ public:
 	void join(chat_participant_ptr participant)
 	{
 		participants_.insert(participant);
-		//for (auto msg : recent_msgs_)
-			//participant->deliver(msg);
-		chat_message Hej;
-		std::string msg2;
-		msg2 = "12341234";
-		for (int i = 0; i < msg2.length(); i++) {
-			Hej.data_[i] = msg2[i];
+		for (auto msg : recent_msgs_)
+			participant->deliver(msg);
+		std::string MsgToSend = "P1";
+		char line[chat_message::max_body_length + 1];
+		for (int i = 0; i < MsgToSend.length(); i++) {
+			line[i] = MsgToSend[i];
 		}
-		Hej.body_length_ = msg2.length() - 4;
-		participant->deliver(Hej);
+		chat_message msg;
+		msg.body_length(2);
+		std::memcpy(msg.body(), line, msg.body_length());
+		msg.encode_header();
+		participant->deliver(msg);;
 	}
 
 	void leave(chat_participant_ptr participant)
