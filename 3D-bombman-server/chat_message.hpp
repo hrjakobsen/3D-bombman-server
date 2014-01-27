@@ -11,7 +11,7 @@
 #ifndef CHAT_MESSAGE_HPP
 #define CHAT_MESSAGE_HPP
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 #endif
 #include <cstdio>
 #include <cstdlib>
@@ -85,7 +85,7 @@ public:
 		std::memcpy(data_, header, header_length);
 	}
 
-private:
+public:
 	char data_[header_length + max_body_length];
 	std::size_t body_length_;
 };

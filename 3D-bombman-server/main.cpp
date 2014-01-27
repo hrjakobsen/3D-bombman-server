@@ -10,10 +10,10 @@
 
 #define BOOST_ASIO_HAS_MOVE 1
 
-
 #include <cstdlib>
 #include <deque>
 #include <iostream>
+#include <string>
 #include <list>
 #include <memory>
 #include <set>
@@ -47,8 +47,16 @@ public:
 	void join(chat_participant_ptr participant)
 	{
 		participants_.insert(participant);
-		for (auto msg : recent_msgs_)
-			participant->deliver(msg);
+		//for (auto msg : recent_msgs_)
+			//participant->deliver(msg);
+		chat_message Hej;
+		std::string msg2;
+		msg2 = "12341234";
+		for (int i = 0; i < msg2.length(); i++) {
+			Hej.data_[i] = msg2[i];
+		}
+		Hej.body_length_ = msg2.length() - 4;
+		participant->deliver(Hej);
 	}
 
 	void leave(chat_participant_ptr participant)
@@ -130,6 +138,7 @@ private:
 			if (!ec)
 			{
 				room_.deliver(read_msg_);
+				//std::cout << read_msg_.body() << "\n";
 				do_read_header();
 			}
 			else
