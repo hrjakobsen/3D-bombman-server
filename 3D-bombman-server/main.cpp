@@ -20,6 +20,9 @@
 #include <utility>
 #include <boost/asio.hpp>
 #include "chat_message.hpp"
+#include <thread>
+#include <time.h>
+#include <chrono>
 
 
 using boost::asio::ip::tcp;
@@ -40,30 +43,56 @@ public:
 typedef std::shared_ptr<chat_participant> chat_participant_ptr;
 
 //----------------------------------------------------------------------
-
+using namespace std;
 class chat_room
 {
 public:
-	void join(chat_participant_ptr participant)
-	{
-		participants_.insert(participant);
-		for (auto msg : recent_msgs_)
-			participant->deliver(msg);
-		std::string MsgToSend = "P1";
+	template <typename T> string tostr(const T& t) { ostringstream os; os << t; return os.str(); }
+	int Online = 0;
+
+	chat_message CTS(std::string str) {
+		std::string MsgToSend = str;
 		char line[chat_message::max_body_length + 1];
 		for (int i = 0; i < MsgToSend.length(); i++) {
 			line[i] = MsgToSend[i];
 		}
 		chat_message msg;
-		msg.body_length(2);
+		msg.body_length(MsgToSend.length());
 		std::memcpy(msg.body(), line, msg.body_length());
 		msg.encode_header();
-		participant->deliver(msg);;
+		return msg;
+	}
+	
+
+
+	string DP1;
+	string DP2;
+	string DP3;
+	string DP4;
+
+
+
+	void join(chat_participant_ptr participant)
+	{
+		participants_.insert(participant);
+		//for (auto msg : recent_msgs_)
+			//participant->deliver(msg);
+		Online++;
+		if (Online == 1) {
+			participant->deliver(CTS("P1"));
+		} else if (Online == 2) {
+			participant->deliver(CTS("P2"));
+		} else if (Online == 3) {
+			participant->deliver(CTS("P3"));
+		} else if (Online == 4) {
+			participant->deliver(CTS("P4"));
+		}
 	}
 
 	void leave(chat_participant_ptr participant)
 	{
 		participants_.erase(participant);
+		Online--;
 	}
 
 	void deliver(const chat_message& msg)
@@ -74,6 +103,48 @@ public:
 
 		for (auto participant : participants_)
 			participant->deliver(msg);
+	}
+	void C() {
+		DP1 = "";
+		DP2 = "";
+		DP3 = "";
+		DP4 = "";
+	}
+	void Done() {
+		if (Online == 1 && DP1 != "") {
+			//deliver(CTS("P2"));
+			deliver(CTS(DP1));
+			C();
+		}
+		else if (Online == 2 && DP1 != "" && DP2 != "") {
+			deliver(CTS(DP1 + ";;;" + DP2));
+			C();
+		}
+		else if (Online == 3 && DP1 != "" && DP2 != "" && DP3 != "") {
+			deliver(CTS(DP1 + ";;;" + DP2 + ";;;" + DP3));
+			C();
+		}
+		else if (Online == 4 && DP1 != "" && DP2 != "" && DP3 != "" && DP4 != "") {
+			deliver(CTS(DP1 + ";;;" + DP2 + ";;;" + DP3 + ";;;" + DP4));
+			C();
+		}
+	}
+
+	void SetDP1(string str){
+		DP1 = str;
+		Done();
+	}
+	void SetDP2(string str){
+		DP2 = str;
+		Done();
+	}
+	void SetDP3(string str){
+		DP3 = str;
+		Done();
+	}
+	void SetDP4(string str){
+		DP4 = str;
+		Done();
 	}
 
 private:
@@ -89,6 +160,59 @@ class chat_session
 	public std::enable_shared_from_this<chat_session>
 {
 public:
+	string Replacer(string Text, string WhatsToRemove, string WhatsToPutIn) {
+		string ReturnString;
+		for (int i = 0; i <= Text.length() - 1; i++) {
+			if (Text.substr(i, WhatsToRemove.length()) == WhatsToRemove) {
+				if (WhatsToPutIn != "") {
+					ReturnString = ReturnString + WhatsToPutIn;
+					i += (int)WhatsToRemove.length() - 1;
+				}
+			}
+			else {
+				ReturnString = ReturnString + Text.substr(i, 1);
+			}
+		}
+
+		return ReturnString;
+	}
+
+	int StringCount(string Text, string WhatToCount) {
+		if (Text.length() < WhatToCount.length()) {
+			return 0;
+		}
+		int Count = 0;
+		for (int i = 0; i < Text.length() - (WhatToCount.length() - 1); i++) {
+			if (Text.substr(i, WhatToCount.length()) == WhatToCount) {
+				Count++;
+			}
+		}
+		return Count;
+	}
+
+	string* Splitter(string Text, string StringToSplitAt) {
+		int Length = StringCount(Text, StringToSplitAt);
+		string *NewArray = new string[Length + 1];
+
+		int Counter = 0;
+		string RemaningText = Text;
+		while (StringCount(RemaningText, StringToSplitAt) != 0) {
+			NewArray[Counter] = RemaningText.substr(0, RemaningText.find(StringToSplitAt));
+			RemaningText = RemaningText.substr(RemaningText.find(StringToSplitAt) + StringToSplitAt.length(), RemaningText.length() - 1);
+			Counter++;
+		}
+		NewArray[Counter] = RemaningText;
+
+		string* Pointer = NewArray;
+		return Pointer;
+	}
+	std::string CTSS(char *Arr, int Length) {
+		std::string ReturnS = "";
+		for (int i = 0; i < Length; i++) {
+			ReturnS += Arr[i];
+		}
+		return ReturnS;
+	}
 	chat_session(tcp::socket socket, chat_room& room)
 		: socket_(std::move(socket)),
 		room_(room)
@@ -108,6 +232,7 @@ public:
 		if (!write_in_progress)
 		{
 			do_write();
+			cout << "Sendt: \n";
 		}
 	}
 
@@ -139,7 +264,19 @@ private:
 		{
 			if (!ec)
 			{
-				room_.deliver(read_msg_);
+
+				//room_.deliver(read_msg_);
+				cout << "Modtaget: " << CTSS(read_msg_.body(), read_msg_.body_length()) << "\n";
+				string *Data = Splitter(CTSS(read_msg_.body(), read_msg_.body_length()), ";");
+				if (Data[0] == "P1") {
+					room_.SetDP1(CTSS(read_msg_.body(), read_msg_.body_length()));
+				} else if (Data[0] == "P2") {
+					room_.SetDP2(CTSS(read_msg_.body(), read_msg_.body_length()));
+				} else if (Data[0] == "P3") {
+					room_.SetDP3(CTSS(read_msg_.body(), read_msg_.body_length()));
+				} else if (Data[0] == "P4") {
+					room_.SetDP4(CTSS(read_msg_.body(), read_msg_.body_length()));
+				}
 				//std::cout << read_msg_.body() << "\n";
 				do_read_header();
 			}
