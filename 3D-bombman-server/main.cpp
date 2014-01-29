@@ -24,7 +24,6 @@
 #include <time.h>
 #include <chrono>
 
-
 using boost::asio::ip::tcp;
 
 //----------------------------------------------------------------------
@@ -49,6 +48,20 @@ class chat_room
 public:
 	template <typename T> string tostr(const T& t) { ostringstream os; os << t; return os.str(); }
 	int Online = 0;
+
+	string BoxOpps = "";
+
+	void BoxOpInit () {
+		if (BoxOpps == "") {
+			string Comma = "";
+			string Numbers[5] = { "0", "1", "2", "3", "4"};
+			srand(time(NULL));
+			for (int i = 0; i < 250; i++) {
+				BoxOpps += Comma + Numbers[rand() % 5];
+				Comma = ";";
+			}
+		}
+	}
 
 	chat_message CTS(std::string str) {
 		std::string MsgToSend = str;
@@ -78,14 +91,15 @@ public:
 		//for (auto msg : recent_msgs_)
 			//participant->deliver(msg);
 		Online++;
+		BoxOpInit();
 		if (Online == 1) {
-			participant->deliver(CTS("P1"));
+			participant->deliver(CTS("P1;" + BoxOpps));
 		} else if (Online == 2) {
-			participant->deliver(CTS("P2"));
+			participant->deliver(CTS("P2;" + BoxOpps));
 		} else if (Online == 3) {
-			participant->deliver(CTS("P3"));
+			participant->deliver(CTS("P3;" + BoxOpps));
 		} else if (Online == 4) {
-			participant->deliver(CTS("P4"));
+			participant->deliver(CTS("P4;" + BoxOpps));
 		}
 	}
 
@@ -355,7 +369,6 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-
 		std::cout << "Port nr:\n";
 		int Port;
 		std::cin >> Port;
