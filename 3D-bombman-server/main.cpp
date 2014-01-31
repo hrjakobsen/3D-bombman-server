@@ -47,17 +47,18 @@ class chat_room
 {
 public:
 	template <typename T> string tostr(const T& t) { ostringstream os; os << t; return os.str(); }
-	int Online = 0;
+	int Online = -1;
+	int OnlineBeforeStart = 10;
 
 	string BoxOpps = "";
 
 	void BoxOpInit () {
 		if (BoxOpps == "") {
 			string Comma = "";
-			string Numbers[5] = { "0", "1", "2", "3", "4"};
+			string Numbers[12] = { "0", "1", "2", "3", "4", "0", "0", "0", "0", "0", "0", "0"};
 			srand(time(NULL));
 			for (int i = 0; i < 250; i++) {
-				BoxOpps += Comma + Numbers[rand() % 5];
+				BoxOpps += Comma + Numbers[rand() % 12];
 				Comma = ";";
 			}
 		}
@@ -100,6 +101,8 @@ public:
 			participant->deliver(CTS("P3;" + BoxOpps));
 		} else if (Online == 4) {
 			participant->deliver(CTS("P4;" + BoxOpps));
+		} else if (Online == 0) {
+			participant->deliver(CTS("P0;" + BoxOpps));
 		}
 	}
 
@@ -382,10 +385,9 @@ int main(int argc, char* argv[])
 		boost::asio::io_service io_service;
 
 		std::list<chat_server> servers;
-
 		tcp::endpoint endpoint(tcp::v4(), Port);
 		servers.emplace_back(io_service, endpoint);
-
+		
 		std::cout << "\nServer open at:\nIP: ";
 
 		//std::cout << &endpoint.impl_.data_.v4.sin_addr << "H";
@@ -408,6 +410,7 @@ int main(int argc, char* argv[])
 		}
 		std::cout << "PORT: " << Port << "\n";
 
+		
 		io_service.run();
 		//std::cout << "Server open at:" << boost::asio::ip::tcp::v4() << ":" << Port << "\n";
 	}
